@@ -318,7 +318,7 @@
       try {
         // Apps Script no permite CORS desde GitHub Pages; no-cors permite enviar y la respuesta queda opaca.
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        statusEl.textContent = 'Solicitud enviada. Gracias por compartir el plan.'; statusEl.className = 'success'; form.reset(); document.querySelector('#year').value = new Date().getFullYear(); document.querySelector('#committeeList').innerHTML = ''; document.querySelector('#eventsList').innerHTML = ''; addMember(); addEvent();
+        statusEl.textContent = 'Solicitud transmitida. Como el navegador no puede leer la respuesta de Apps Script, confirma que el registro aparezca en la hoja antes de cerrar.'; statusEl.className = 'success'; form.reset(); document.querySelector('#year').value = new Date().getFullYear(); document.querySelector('#committeeList').innerHTML = ''; document.querySelector('#eventsList').innerHTML = ''; addMember(); addEvent();
       } catch (err) { statusEl.textContent = 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.'; statusEl.className = 'error'; }
       finally { btn.disabled = false; btn.textContent = 'Enviar plan de trabajo'; }
     });
