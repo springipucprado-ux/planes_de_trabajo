@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173d35">
+  <title>Planes de trabajo | Iglesia</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18332d;
+      --muted: #65766f;
+      --line: #dce5df;
+      --green: #1d5a49;
+      --pale: #f2f6f2;
+      --gold: #c79b54;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #f5f7f4;
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+    }
+
+    header {
+      background: var(--green);
+      color: white;
+      padding: 34px 20px 56px;
+      border-bottom: 5px solid var(--gold)
+    }
+
+    .head,
+    main {
+      width: min(900px, 100% - 32px);
+      margin: auto
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .75rem;
+      opacity: .8;
+      font-weight: 700
+    }
+
+    h1 {
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+      line-height: 1.15;
+      margin: .45rem 0
+    }
+
+    header p {
+      margin: 0;
+      opacity: .88
+    }
+
+    main {
+      margin-top: -28px;
+      padding-bottom: 48px
+    }
+
+    form {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(20px, 4vw, 36px);
+      box-shadow: 0 12px 36px #18332d12
+    }
+
+    section+section {
+      margin-top: 34px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line)
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 0 0 5px
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: .9rem;
+      margin: 0 0 20px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px
+    }
+
+    .field {
+      min-width: 0
+    }
+
+    .wide {
+      grid-column: 1/-1
+    }
+
+    label {
+      display: block;
+      font-size: .9rem;
+      font-weight: 650;
+      margin-bottom: 6px
+    }
+
+    input,
+    select,
+    textarea {
+      display: block;
+      width: 100%;
+      border: 1px solid #cbd8d0;
+      border-radius: 9px;
+      padding: 11px 12px;
+      color: var(--ink);
+      background: white;
+      font: inherit
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 3px solid #1d5a4920;
+      border-color: var(--green)
+    }
+
+    .repeat-card {
+      background: var(--pale);
+      border: 1px solid var(--line);
+      padding: 16px;
+      border-radius: 12px;
+      margin: 12px 0
+    }
+
+    .repeat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px
+    }
+
+    .repeat-top strong {
+      font-size: .95rem
+    }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .add {
+      background: #e7f0eb;
+      color: var(--green);
+      margin-top: 4px
+    }
+
+    .remove {
+      background: transparent;
+      color: #9a3f35;
+      padding: 4px 8px;
+      font-size: .86rem
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 28px
+    }
+
+    .submit {
+      background: var(--green);
+      color: white;
+      padding: 13px 22px
+    }
+
+    .submit:disabled {
+      opacity: .65;
+      cursor: wait
+    }
+
+    #status {
+      color: var(--muted);
+      font-size: .9rem
+    }
+
+    .error {
+      color: #9a3f35 !important
+    }
+
+    .success {
+      color: #1d6b45 !important
+    }
+
+    .required {
+      color: #a34e35
+    }
+
+    .hp {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden
+    }
+
+    @media(max-width:600px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+
+      .wide {
+        grid-column: auto
+      }
+
+      .actions {
+        align-items: flex-start;
+        flex-direction: column
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="head">
+      <div class="eyebrow">Organización y servicio</div>
+      <h1>Plan de trabajo del área</h1>
+      <p>Comparte la propuesta de tu área para que el comité pueda revisarla y coordinarla.</p>
+    </div>
+  </header>
+  <main>
+    <form id="planForm">
+      <div class="hp" aria-hidden="true"><label>No llenar<input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+      <section>
+        <h2>1. Información del área</h2>
+        <p class="hint">Identifica el área y la persona responsable de presentar el plan.</p>
+        <div class="grid">
+          <div class="field"><label for="area">Área o ministerio <span class="required">*</span></label><input id="area"
+              name="area" required maxlength="100" placeholder="Ej. Jóvenes"></div>
+          <div class="field"><label for="year">Año del plan <span class="required">*</span></label><input id="year"
+              name="year" type="number" required min="2020" max="2100"></div>
+          <div class="field"><label for="leader">Líder que presenta <span class="required">*</span></label><input
+              id="leader" name="leader" required maxlength="120"></div>
+          <div class="field"><label for="email">Correo de contacto</label><input id="email" name="email" type="email"
+              maxlength="150"></div>
+          <div class="field wide"><label for="objective">Objetivo general <span
+                class="required">*</span></label><textarea id="objective" name="objective" required maxlength="1500"
+              placeholder="¿Qué busca lograr el área este año?"></textarea></div>
+        </div>
+      </section>
+      <section>
+        <h2>2. Directiva o comité</h2>
+        <p class="hint">Agrega a las personas que conforman el comité y su función.</p>
+        <div id="committeeList"></div><button class="add" type="button" id="addMember">＋ Agregar integrante</button>
+      </section>
+      <section>
+        <h2>3. Eventos y actividades</h2>
+        <p class="hint">Incluye fechas estimadas y el presupuesto aproximado de cada actividad.</p>
+        <div id="eventsList"></div><button class="add" type="button" id="addEvent">＋ Agregar evento</button>
+      </section>
+      <div class="actions"><button class="submit" id="submitBtn" type="submit">Enviar plan de trabajo</button><span
+          id="status" role="status" aria-live="polite"></span></div>
+    </form>
+  </main>
+  <script>
+    // Pega aquí la URL de la implementación web de Apps Script, terminada en /exec.
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03TEM_lq52yP0ktvlfFM5vRXuQHMSgTRF7PBWbU8TF1qnNSk8uVURN8iHec3sZgEL/exec';
+    const form = document.querySelector('#planForm');
+    const statusEl = document.querySelector('#status');
+    document.querySelector('#year').value = new Date().getFullYear();
+
+    function addMember() {
+      const n = document.querySelectorAll('.member-card').length + 1;
+      const card = document.createElement('div'); card.className = 'repeat-card member-card';
+      card.innerHTML = `<div class="repeat-top"><strong>Integrante ${n}</strong><button type="button" class="remove" aria-label="Quitar integrante">Quitar</button></div><div class="grid"><div class="field"><label>Nombre <span class="required">*</span></label><input name="memberName" required maxlength="120" placeholder="Nombre completo"></div><div class="field"><label>Cargo en el comité <span class="required">*</span></label><input name="memberRole" required maxlength="100" placeholder="Ej. Secretaría"></div></div>`;
+      card.querySelector('.remove').onclick = () => { card.remove(); renumber('.member-card', 'Integrante'); }; document.querySelector('#committeeList').append(card); renumber('.member-card', 'Integrante');
+    }
+    function addEvent() {
+      const n = document.querySelectorAll('.event-card').length + 1;
+      const card = document.createElement('div'); card.className = 'repeat-card event-card';
+      card.innerHTML = `<div class="repeat-top"><strong>Evento ${n}</strong><button type="button" class="remove" aria-label="Quitar evento">Quitar</button></div><div class="grid"><div class="field"><label>Nombre del evento <span class="required">*</span></label><input name="eventName" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></div><div class="field"><label>Fecha estimada <span class="required">*</span></label><input name="eventDate" type="date" required></div><div class="field"><label>Presupuesto aproximado (COP) <span class="required">*</span></label><input name="eventBudget" type="number" required min="0" step="1000" placeholder="0"></div><div class="field"><label>Lugar (opcional)</label><input name="eventPlace" maxlength="150"></div><div class="field wide"><label>Descripción / notas</label><textarea name="eventNotes" maxlength="1000" placeholder="Propósito, materiales o detalles relevantes"></textarea></div></div>`;
+      card.querySelector('.remove').onclick = () => { card.remove(); renumber('.event-card', 'Evento'); }; document.querySelector('#eventsList').append(card); renumber('.event-card', 'Evento');
+    }
+    function renumber(selector, label) { document.querySelectorAll(selector + ' .repeat-top strong').forEach((el, i) => el.textContent = `${label} ${i + 1}`); }
+    document.querySelector('#addMember').onclick = addMember; document.querySelector('#addEvent').onclick = addEvent;
+    addMember(); addEvent();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); statusEl.className = ''; statusEl.textContent = '';
+      if (!form.reportValidity()) return;
+      if (SCRIPT_URL.includes('PEGA_AQUI')) { statusEl.textContent = 'Falta configurar la URL del Apps Script en el archivo HTML.'; statusEl.className = 'error'; return; }
+      const fd = new FormData(form);
+      if (fd.get('website')) return; // campo trampa contra envíos automatizados
+      const payload = {
+        area: fd.get('area').trim(), year: Number(fd.get('year')), leader: fd.get('leader').trim(), email: fd.get('email').trim(), objective: fd.get('objective').trim(),
+        committee: [...document.querySelectorAll('.member-card')].map(c => ({ name: c.querySelector('[name="memberName"]').value.trim(), role: c.querySelector('[name="memberRole"]').value.trim() })),
+        events: [...document.querySelectorAll('.event-card')].map(c => ({ name: c.querySelector('[name="eventName"]').value.trim(), date: c.querySelector('[name="eventDate"]').value, budget: Number(c.querySelector('[name="eventBudget"]').value), place: c.querySelector('[name="eventPlace"]').value.trim(), notes: c.querySelector('[name="eventNotes"]').value.trim() }))
+      };
+      const btn = document.querySelector('#submitBtn'); btn.disabled = true; btn.textContent = 'Enviando…';
+      try {
+        // Apps Script no permite CORS desde GitHub Pages; no-cors permite enviar y la respuesta queda opaca.
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        statusEl.textContent = 'Solicitud enviada. Gracias por compartir el plan.'; statusEl.className = 'success'; form.reset(); document.querySelector('#year').value = new Date().getFullYear(); document.querySelector('#committeeList').innerHTML = ''; document.querySelector('#eventsList').innerHTML = ''; addMember(); addEvent();
+      } catch (err) { statusEl.textContent = 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.'; statusEl.className = 'error'; }
+      finally { btn.disabled = false; btn.textContent = 'Enviar plan de trabajo'; }
+    });
+  </script>
+</body>
+
+</html>
