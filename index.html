@@ -177,6 +177,48 @@
       font-size: .86rem
     }
 
+    .table-scroll {
+      overflow-x: auto;
+      margin: 14px 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: white;
+      -webkit-overflow-scrolling: touch
+    }
+
+    .events-table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
+      font-size: .88rem
+    }
+
+    .events-table th {
+      background: #eaf1ec;
+      color: var(--ink);
+      font-size: .78rem;
+      text-align: left;
+      white-space: nowrap;
+      padding: 11px 9px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .events-table td {
+      padding: 9px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .events-table tbody tr:last-child td { border-bottom: 0 }
+    .events-table input, .events-table textarea { min-width: 0; padding: 9px; font-size: .86rem }
+    .events-table textarea { min-height: 42px; width: 220px }
+    .events-table .event-name { width: 210px }
+    .events-table .event-date { width: 155px }
+    .events-table .event-budget { width: 170px }
+    .events-table .event-place { width: 170px }
+    .events-table .row-number { color: var(--muted); font-weight: 700; text-align: center; padding-top: 18px }
+    .table-hint { color: var(--muted); font-size: .82rem; margin: -8px 0 12px }
+
     .actions {
       display: flex;
       align-items: center;
@@ -273,8 +315,15 @@
       </section>
       <section>
         <h2>3. Eventos y actividades</h2>
-        <p class="hint">Incluye fechas estimadas y el presupuesto aproximado de cada actividad.</p>
-        <div id="eventsList"></div><button class="add" type="button" id="addEvent">＋ Agregar evento</button>
+        <p class="hint">Registra cada actividad en una fila, con su fecha y presupuesto aproximado.</p>
+        <p class="table-hint">En pantallas pequeñas, desplaza la tabla horizontalmente para completar todas las columnas.</p>
+        <div class="table-scroll" tabindex="0" aria-label="Tabla desplazable de eventos y actividades">
+          <table class="events-table">
+            <thead><tr><th scope="col">N.º</th><th scope="col">Evento / actividad <span class="required">*</span></th><th scope="col">Fecha estimada <span class="required">*</span></th><th scope="col">Presupuesto (COP) <span class="required">*</span></th><th scope="col">Lugar</th><th scope="col">Descripción / notas</th><th scope="col">Acción</th></tr></thead>
+            <tbody id="eventsList"></tbody>
+          </table>
+        </div>
+        <button class="add" type="button" id="addEvent">＋ Agregar fila</button>
       </section>
       <div class="actions"><button class="submit" id="submitBtn" type="submit">Enviar plan de trabajo</button><span
           id="status" role="status" aria-live="polite"></span></div>
@@ -294,12 +343,19 @@
       card.querySelector('.remove').onclick = () => { card.remove(); renumber('.member-card', 'Integrante'); }; document.querySelector('#committeeList').append(card); renumber('.member-card', 'Integrante');
     }
     function addEvent() {
-      const n = document.querySelectorAll('.event-card').length + 1;
-      const card = document.createElement('div'); card.className = 'repeat-card event-card';
-      card.innerHTML = `<div class="repeat-top"><strong>Evento ${n}</strong><button type="button" class="remove" aria-label="Quitar evento">Quitar</button></div><div class="grid"><div class="field"><label>Nombre del evento <span class="required">*</span></label><input name="eventName" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></div><div class="field"><label>Fecha estimada <span class="required">*</span></label><input name="eventDate" type="date" required></div><div class="field"><label>Presupuesto aproximado (COP) <span class="required">*</span></label><input name="eventBudget" type="number" required min="0" step="1000" placeholder="0"></div><div class="field"><label>Lugar (opcional)</label><input name="eventPlace" maxlength="150"></div><div class="field wide"><label>Descripción / notas</label><textarea name="eventNotes" maxlength="1000" placeholder="Propósito, materiales o detalles relevantes"></textarea></div></div>`;
-      card.querySelector('.remove').onclick = () => { card.remove(); renumber('.event-card', 'Evento'); }; document.querySelector('#eventsList').append(card); renumber('.event-card', 'Evento');
+      const row = document.createElement('tr'); row.className = 'event-row';
+      row.innerHTML = `<td class="row-number"></td><td><input class="event-name" name="eventName" aria-label="Nombre del evento o actividad" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></td><td><input class="event-date" name="eventDate" aria-label="Fecha estimada" type="date" required></td><td><input class="event-budget" name="eventBudget" aria-label="Presupuesto aproximado en pesos colombianos" type="number" required min="0" step="1000" placeholder="0"></td><td><input class="event-place" name="eventPlace" aria-label="Lugar (opcional)" maxlength="150" placeholder="Lugar"></td><td><textarea name="eventNotes" aria-label="Descripción o notas" maxlength="1000" placeholder="Propósito, materiales o detalles"></textarea></td><td><button type="button" class="remove" aria-label="Quitar actividad">Quitar</button></td>`;
+      row.querySelector('.remove').onclick = () => { row.remove(); renumber('.event-row', ''); };
+      document.querySelector('#eventsList').append(row);
+      renumber('.event-row', '');
     }
-    function renumber(selector, label) { document.querySelectorAll(selector + ' .repeat-top strong').forEach((el, i) => el.textContent = `${label} ${i + 1}`); }
+    function renumber(selector, label) {
+      if (selector === '.event-row') {
+        document.querySelectorAll('.event-row .row-number').forEach((el, i) => el.textContent = i + 1);
+        return;
+      }
+      document.querySelectorAll(selector + ' .repeat-top strong').forEach((el, i) => el.textContent = `${label} ${i + 1}`);
+    }
     document.querySelector('#addMember').onclick = addMember; document.querySelector('#addEvent').onclick = addEvent;
     addMember(); addEvent();
 
@@ -312,7 +368,7 @@
       const payload = {
         area: fd.get('area').trim(), year: Number(fd.get('year')), leader: fd.get('leader').trim(), email: fd.get('email').trim(), objective: fd.get('objective').trim(),
         committee: [...document.querySelectorAll('.member-card')].map(c => ({ name: c.querySelector('[name="memberName"]').value.trim(), role: c.querySelector('[name="memberRole"]').value.trim() })),
-        events: [...document.querySelectorAll('.event-card')].map(c => ({ name: c.querySelector('[name="eventName"]').value.trim(), date: c.querySelector('[name="eventDate"]').value, budget: Number(c.querySelector('[name="eventBudget"]').value), place: c.querySelector('[name="eventPlace"]').value.trim(), notes: c.querySelector('[name="eventNotes"]').value.trim() }))
+        events: [...document.querySelectorAll('.event-row')].map(row => ({ name: row.querySelector('[name="eventName"]').value.trim(), date: row.querySelector('[name="eventDate"]').value, budget: Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() }))
       };
       const btn = document.querySelector('#submitBtn'); btn.disabled = true; btn.textContent = 'Enviando…';
       try {
