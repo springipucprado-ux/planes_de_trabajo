@@ -45,7 +45,7 @@ Al completarse la solicitud `POST`, el formulario muestra una confirmación de p
 
 ## Tablero privado para la junta directiva
 
-`Dashboard.html` presenta cada envío como una tarjeta con filtros por texto, área y año, además del objetivo, comité, actividades y presupuesto. Incluye una pestaña de calendario mensual con actividades de un día o de varios días. Al arrastrar una actividad, se mueve todo su rango y se guarda la nueva fecha en el JSON del plan. El botón **Exportar este mes a PDF** prepara un informe imprimible con las actividades que coinciden con el mes abierto; en el diálogo del navegador selecciona **Guardar como PDF**.
+`Dashboard.html` presenta cada envío como una tarjeta con filtros por texto, área y año, además del objetivo, comité, actividades y presupuesto. Incluye una pestaña de calendario mensual con actividades de un día o de varios días, en tarjetas de color con la cuadrícula visible. Al arrastrar una actividad, se mueve todo su rango y se guarda la nueva fecha en el JSON del plan. El botón **Exportar este mes a PDF** prepara un informe imprimible con las actividades que coinciden con el mes abierto; en el diálogo del navegador selecciona **Guardar como PDF**. El calendario usa FullCalendar v7 con sus archivos skeleton y theme Classic.
 
 1. En Apps Script, crea un archivo HTML llamado `Dashboard` y copia allí el contenido de `Dashboard.html`.
 2. Copia también la versión actualizada de `Code.gs` al proyecto.
