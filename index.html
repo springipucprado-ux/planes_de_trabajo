@@ -213,7 +213,7 @@
     .events-table input, .events-table textarea { min-width: 0; padding: 9px; font-size: .86rem }
     .events-table textarea { min-height: 42px; width: 220px }
     .events-table .event-name { width: 210px }
-    .events-table .event-date { width: 155px }
+    .events-table .event-date, .events-table .event-start, .events-table .event-end { width: 145px }
     .events-table .event-budget { width: 170px }
     .events-table .event-place { width: 170px }
     .events-table .row-number { color: var(--muted); font-weight: 700; text-align: center; padding-top: 18px }
@@ -356,11 +356,11 @@
       </section>
       <section>
         <h2>3. Eventos y actividades</h2>
-        <p class="hint">Registra cada actividad en una fila, con su fecha y presupuesto aproximado.</p>
+        <p class="hint">Registra cada actividad en una fila. Puedes indicar un solo día o el rango completo de una semana; el presupuesto es opcional.</p>
         <p class="table-hint">En pantallas pequeñas, desplaza la tabla horizontalmente para completar todas las columnas.</p>
         <div class="table-scroll" tabindex="0" aria-label="Tabla desplazable de eventos y actividades">
           <table class="events-table">
-            <thead><tr><th scope="col">N.º</th><th scope="col">Evento / actividad <span class="required">*</span></th><th scope="col">Fecha estimada <span class="required">*</span></th><th scope="col">Presupuesto aprox. (COP) · opcional</th><th scope="col">Lugar</th><th scope="col">Descripción / notas</th><th scope="col">Acción</th></tr></thead>
+            <thead><tr><th scope="col">N.º</th><th scope="col">Evento / actividad <span class="required">*</span></th><th scope="col">Fecha o semana <span class="required">*</span></th><th scope="col">Presupuesto aprox. (COP) · opcional</th><th scope="col">Lugar</th><th scope="col">Descripción / notas</th><th scope="col">Acción</th></tr></thead>
             <tbody id="eventsList"></tbody>
           </table>
         </div>
@@ -406,7 +406,21 @@
     }
     function addEvent() {
       const row = document.createElement('tr'); row.className = 'event-row';
-      row.innerHTML = `<td class="row-number"></td><td><input class="event-name" name="eventName" aria-label="Nombre del evento o actividad" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></td><td><input class="event-date" name="eventDate" aria-label="Fecha estimada" type="date" required></td><td><input class="event-budget" name="eventBudget" aria-label="Presupuesto aproximado en pesos colombianos (opcional)" type="number" min="0" step="1000" placeholder="Sin definir"></td><td><input class="event-place" name="eventPlace" aria-label="Lugar (opcional)" maxlength="150" placeholder="Lugar"></td><td><textarea name="eventNotes" aria-label="Descripción o notas" maxlength="1000" placeholder="Propósito, materiales o detalles"></textarea></td><td><button type="button" class="remove" aria-label="Quitar actividad">Quitar</button></td>`;
+      row.innerHTML = `<td class="row-number"></td><td><input class="event-name" name="eventName" aria-label="Nombre del evento o actividad" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></td><td><select name="eventDateType" aria-label="Tipo de fecha"><option value="single">Un día</option><option value="week">Semana completa</option></select><div class="date-single"><input class="event-date" name="eventDate" aria-label="Fecha del evento" type="date" required></div><div class="date-week" hidden><label>Desde <input class="event-start" name="eventStartDate" aria-label="Primer día de la semana" type="date" disabled></label><label>Hasta <input class="event-end" name="eventEndDate" aria-label="Último día de la semana" type="date" disabled></label></div></td><td><input class="event-budget" name="eventBudget" aria-label="Presupuesto aproximado en pesos colombianos (opcional)" type="number" min="0" step="1000" placeholder="Sin definir"></td><td><input class="event-place" name="eventPlace" aria-label="Lugar (opcional)" maxlength="150" placeholder="Lugar"></td><td><textarea name="eventNotes" aria-label="Descripción o notas" maxlength="1000" placeholder="Propósito, materiales o detalles"></textarea></td><td><button type="button" class="remove" aria-label="Quitar actividad">Quitar</button></td>`;
+      const typeSelect = row.querySelector('[name="eventDateType"]');
+      const singleDate = row.querySelector('[name="eventDate"]');
+      const weekStart = row.querySelector('[name="eventStartDate"]');
+      const weekEnd = row.querySelector('[name="eventEndDate"]');
+      typeSelect.addEventListener('change', () => {
+        const isWeek = typeSelect.value === 'week';
+        row.querySelector('.date-single').hidden = isWeek;
+        row.querySelector('.date-week').hidden = !isWeek;
+        singleDate.disabled = isWeek; singleDate.required = !isWeek;
+        weekStart.disabled = !isWeek; weekStart.required = isWeek;
+        weekEnd.disabled = !isWeek; weekEnd.required = isWeek;
+      });
+      weekStart.addEventListener('change', () => { weekEnd.min = weekStart.value; if (weekEnd.value && weekEnd.value < weekStart.value) weekEnd.value = weekStart.value; });
+      weekEnd.addEventListener('change', () => { weekStart.max = weekEnd.value; });
       row.querySelector('.remove').onclick = () => { row.remove(); renumber('.event-row', ''); };
       document.querySelector('#eventsList').append(row);
       renumber('.event-row', '');
@@ -430,7 +444,11 @@
       const payload = {
         area: fd.get('area').trim(), year: Number(fd.get('year')), leader: fd.get('leader').trim(), email: fd.get('email').trim(), objective: fd.get('objective').trim(),
         committee: [...document.querySelectorAll('.member-card')].map(c => ({ name: c.querySelector('[name="memberName"]').value.trim(), role: c.querySelector('[name="memberRole"]').value.trim() })),
-        events: [...document.querySelectorAll('.event-row')].map(row => ({ name: row.querySelector('[name="eventName"]').value.trim(), date: row.querySelector('[name="eventDate"]').value, budget: row.querySelector('[name="eventBudget"]').value === '' ? null : Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() }))
+        events: [...document.querySelectorAll('.event-row')].map(row => {
+          const isWeek = row.querySelector('[name="eventDateType"]').value === 'week';
+          const date = isWeek ? row.querySelector('[name="eventStartDate"]').value : row.querySelector('[name="eventDate"]').value;
+          return { name: row.querySelector('[name="eventName"]').value.trim(), date, startDate: isWeek ? date : null, endDate: isWeek ? row.querySelector('[name="eventEndDate"]').value : null, dateType: isWeek ? 'week' : 'single', budget: row.querySelector('[name="eventBudget"]').value === '' ? null : Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() };
+        })
       };
       const btn = document.querySelector('#submitBtn');
       btn.disabled = true; btn.textContent = 'Enviando…';
