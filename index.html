@@ -335,6 +335,67 @@
     const form = document.querySelector('#planForm');
     const statusEl = document.querySelector('#status');
     document.querySelector('#year').value = new Date().getFullYear();
+    let pendingRequestId = '';
+
+    function createRequestId() {
+      return (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `plan_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+    }
+
+    function pollSaveStatus(requestId, timeoutMs = 30000) {
+      const callbackName = `planStatus_${requestId.replace(/[^A-Za-z0-9_$]/g, '')}`;
+      const deadline = Date.now() + timeoutMs;
+      return new Promise((resolve, reject) => {
+        let timer;
+        let activeScript;
+        const finish = (error, result) => {
+          clearTimeout(timer);
+          if (activeScript) activeScript.remove();
+          delete window[callbackName];
+          error ? reject(error) : resolve(result);
+        };
+        const check = () => {
+          if (Date.now() >= deadline) {
+            finish(new Error('No recibimos confirmación del servidor.'));
+            return;
+          }
+          activeScript = document.createElement('script');
+          activeScript.async = true;
+          activeScript.onerror = () => {
+            activeScript.remove();
+            timer = setTimeout(check, 1200);
+          };
+          window[callbackName] = (result) => {
+            activeScript.remove();
+            if (result.state === 'pending') timer = setTimeout(check, 1200);
+            else finish(null, result);
+          };
+          const url = new URL(SCRIPT_URL);
+          url.searchParams.set('prefix', callbackName);
+          url.searchParams.set('requestId', requestId);
+          url.searchParams.set('_', String(Date.now()));
+          activeScript.src = url.toString();
+          document.head.append(activeScript);
+        };
+        check();
+      });
+    }
+
+    function finishSubmission(button) {
+      button.disabled = false;
+      button.textContent = 'Enviar plan de trabajo';
+      pendingRequestId = '';
+    }
+
+    function resetPlanForm() {
+      form.reset();
+      document.querySelector('#year').value = new Date().getFullYear();
+      document.querySelector('#committeeList').innerHTML = '';
+      document.querySelector('#eventsList').innerHTML = '';
+      addMember();
+      addEvent();
+    }
 
     function addMember() {
       const n = document.querySelectorAll('.member-card').length + 1;
@@ -370,13 +431,32 @@
         committee: [...document.querySelectorAll('.member-card')].map(c => ({ name: c.querySelector('[name="memberName"]').value.trim(), role: c.querySelector('[name="memberRole"]').value.trim() })),
         events: [...document.querySelectorAll('.event-row')].map(row => ({ name: row.querySelector('[name="eventName"]').value.trim(), date: row.querySelector('[name="eventDate"]').value, budget: row.querySelector('[name="eventBudget"]').value === '' ? null : Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() }))
       };
-      const btn = document.querySelector('#submitBtn'); btn.disabled = true; btn.textContent = 'Enviando…';
+      const btn = document.querySelector('#submitBtn');
+      pendingRequestId = createRequestId();
+      payload.requestId = pendingRequestId;
+      btn.disabled = true; btn.textContent = 'Enviando…';
       try {
-        // Apps Script no permite CORS desde GitHub Pages; no-cors permite enviar y la respuesta queda opaca.
-        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        statusEl.textContent = 'Solicitud transmitida. Como el navegador no puede leer la respuesta de Apps Script, confirma que el registro aparezca en la hoja antes de cerrar.'; statusEl.className = 'success'; form.reset(); document.querySelector('#year').value = new Date().getFullYear(); document.querySelector('#committeeList').innerHTML = ''; document.querySelector('#eventsList').innerHTML = ''; addMember(); addEvent();
-      } catch (err) { statusEl.textContent = 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.'; statusEl.className = 'error'; }
-      finally { btn.disabled = false; btn.textContent = 'Enviar plan de trabajo'; }
+        // El POST se envía sin preflight; luego JSONP consulta el estado real de guardado.
+        try {
+          await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        } catch (networkError) {
+          // El POST podría haber llegado aunque el navegador no pudiera leer la respuesta.
+        }
+        const result = await pollSaveStatus(pendingRequestId);
+        if (result.state === 'success') {
+          statusEl.textContent = '¡Plan enviado y guardado correctamente!';
+          statusEl.className = 'success';
+          resetPlanForm();
+        } else {
+          statusEl.textContent = `No se pudo guardar: ${result.message || 'error desconocido'}. La información permanece en el formulario.`;
+          statusEl.className = 'error';
+        }
+      } catch (err) {
+        statusEl.textContent = 'No recibimos confirmación del guardado. La información permanece en el formulario; revisa la hoja antes de volver a enviarla para evitar duplicados.';
+        statusEl.className = 'error';
+      } finally {
+        finishSubmission(btn);
+      }
     });
   </script>
 </body>
