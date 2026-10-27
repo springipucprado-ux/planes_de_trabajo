@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173d35">
   <title>Planes de trabajo | Iglesia</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://w3.org viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
   <style>
     :root {
       color-scheme: light;
@@ -383,7 +384,7 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0B9BRPWHH_ozawmP5ZbxYCaQnyzUOMmTyrkZNoH5s-jFWi_69hC-I60hdsDRrQyWYVg/exec';
     const form = document.querySelector('#planForm');
     const statusEl = document.querySelector('#status');
-    document.querySelector('#year').value = new Date().getFullYear();
+    document.querySelector('#year').value = 2027;
     function finishSubmission(button) {
       button.disabled = false;
       button.textContent = 'Enviar plan de trabajo';
@@ -391,7 +392,7 @@
 
     function resetPlanForm() {
       form.reset();
-      document.querySelector('#year').value = new Date().getFullYear();
+      document.querySelector('#year').value = 2027;
       document.querySelector('#committeeList').innerHTML = '';
       document.querySelector('#eventsList').innerHTML = '';
       addMember();
