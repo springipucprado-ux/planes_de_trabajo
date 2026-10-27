@@ -319,7 +319,7 @@
         <p class="table-hint">En pantallas pequeñas, desplaza la tabla horizontalmente para completar todas las columnas.</p>
         <div class="table-scroll" tabindex="0" aria-label="Tabla desplazable de eventos y actividades">
           <table class="events-table">
-            <thead><tr><th scope="col">N.º</th><th scope="col">Evento / actividad <span class="required">*</span></th><th scope="col">Fecha estimada <span class="required">*</span></th><th scope="col">Presupuesto (COP) <span class="required">*</span></th><th scope="col">Lugar</th><th scope="col">Descripción / notas</th><th scope="col">Acción</th></tr></thead>
+            <thead><tr><th scope="col">N.º</th><th scope="col">Evento / actividad <span class="required">*</span></th><th scope="col">Fecha estimada <span class="required">*</span></th><th scope="col">Presupuesto aprox. (COP) · opcional</th><th scope="col">Lugar</th><th scope="col">Descripción / notas</th><th scope="col">Acción</th></tr></thead>
             <tbody id="eventsList"></tbody>
           </table>
         </div>
@@ -344,7 +344,7 @@
     }
     function addEvent() {
       const row = document.createElement('tr'); row.className = 'event-row';
-      row.innerHTML = `<td class="row-number"></td><td><input class="event-name" name="eventName" aria-label="Nombre del evento o actividad" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></td><td><input class="event-date" name="eventDate" aria-label="Fecha estimada" type="date" required></td><td><input class="event-budget" name="eventBudget" aria-label="Presupuesto aproximado en pesos colombianos" type="number" required min="0" step="1000" placeholder="0"></td><td><input class="event-place" name="eventPlace" aria-label="Lugar (opcional)" maxlength="150" placeholder="Lugar"></td><td><textarea name="eventNotes" aria-label="Descripción o notas" maxlength="1000" placeholder="Propósito, materiales o detalles"></textarea></td><td><button type="button" class="remove" aria-label="Quitar actividad">Quitar</button></td>`;
+      row.innerHTML = `<td class="row-number"></td><td><input class="event-name" name="eventName" aria-label="Nombre del evento o actividad" required maxlength="150" placeholder="Ej. Retiro de jóvenes"></td><td><input class="event-date" name="eventDate" aria-label="Fecha estimada" type="date" required></td><td><input class="event-budget" name="eventBudget" aria-label="Presupuesto aproximado en pesos colombianos (opcional)" type="number" min="0" step="1000" placeholder="Sin definir"></td><td><input class="event-place" name="eventPlace" aria-label="Lugar (opcional)" maxlength="150" placeholder="Lugar"></td><td><textarea name="eventNotes" aria-label="Descripción o notas" maxlength="1000" placeholder="Propósito, materiales o detalles"></textarea></td><td><button type="button" class="remove" aria-label="Quitar actividad">Quitar</button></td>`;
       row.querySelector('.remove').onclick = () => { row.remove(); renumber('.event-row', ''); };
       document.querySelector('#eventsList').append(row);
       renumber('.event-row', '');
@@ -368,7 +368,7 @@
       const payload = {
         area: fd.get('area').trim(), year: Number(fd.get('year')), leader: fd.get('leader').trim(), email: fd.get('email').trim(), objective: fd.get('objective').trim(),
         committee: [...document.querySelectorAll('.member-card')].map(c => ({ name: c.querySelector('[name="memberName"]').value.trim(), role: c.querySelector('[name="memberRole"]').value.trim() })),
-        events: [...document.querySelectorAll('.event-row')].map(row => ({ name: row.querySelector('[name="eventName"]').value.trim(), date: row.querySelector('[name="eventDate"]').value, budget: Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() }))
+        events: [...document.querySelectorAll('.event-row')].map(row => ({ name: row.querySelector('[name="eventName"]').value.trim(), date: row.querySelector('[name="eventDate"]').value, budget: row.querySelector('[name="eventBudget"]').value === '' ? null : Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() }))
       };
       const btn = document.querySelector('#submitBtn'); btn.disabled = true; btn.textContent = 'Enviando…';
       try {
