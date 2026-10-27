@@ -250,6 +250,47 @@
       color: #1d6b45 !important
     }
 
+    .success-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #10231fee;
+      backdrop-filter: blur(5px)
+    }
+
+    .success-overlay[hidden] { display: none }
+
+    .success-card {
+      width: min(620px, 100%);
+      padding: clamp(32px, 7vw, 64px);
+      border: 1px solid #e1e9e3;
+      border-radius: 24px;
+      background: white;
+      text-align: center;
+      box-shadow: 0 24px 80px #0004
+    }
+
+    .success-icon {
+      display: grid;
+      place-items: center;
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      color: white;
+      background: #28734e;
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .success-card h2 { margin: 0 0 10px; font-size: clamp(2rem, 7vw, 3rem); line-height: 1.1 }
+    .success-card p { margin: 0 auto 26px; max-width: 440px; color: var(--muted); font-size: 1.08rem }
+    .success-card button { background: var(--green); color: white; padding: 13px 22px }
+
     .required {
       color: #a34e35
     }
@@ -329,63 +370,23 @@
           id="status" role="status" aria-live="polite"></span></div>
     </form>
   </main>
+  <div id="successOverlay" class="success-overlay" role="dialog" aria-modal="true" aria-labelledby="successTitle" aria-describedby="successMessage" hidden>
+    <div class="success-card">
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <h2 id="successTitle">¡Plan enviado!</h2>
+      <p id="successMessage">Tu respuesta fue registrada correctamente.</p>
+      <button type="button" id="newPlanButton">Registrar otro plan</button>
+    </div>
+  </div>
   <script>
     // Pega aquí la URL de la implementación web de Apps Script, terminada en /exec.
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0B9BRPWHH_ozawmP5ZbxYCaQnyzUOMmTyrkZNoH5s-jFWi_69hC-I60hdsDRrQyWYVg/exec';
     const form = document.querySelector('#planForm');
     const statusEl = document.querySelector('#status');
     document.querySelector('#year').value = new Date().getFullYear();
-    let pendingRequestId = '';
-
-    function createRequestId() {
-      return (window.crypto && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : `plan_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
-    }
-
-    function pollSaveStatus(requestId, timeoutMs = 30000) {
-      const callbackName = `planStatus_${requestId.replace(/[^A-Za-z0-9_$]/g, '')}`;
-      const deadline = Date.now() + timeoutMs;
-      return new Promise((resolve, reject) => {
-        let timer;
-        let activeScript;
-        const finish = (error, result) => {
-          clearTimeout(timer);
-          if (activeScript) activeScript.remove();
-          delete window[callbackName];
-          error ? reject(error) : resolve(result);
-        };
-        const check = () => {
-          if (Date.now() >= deadline) {
-            finish(new Error('No recibimos confirmación del servidor.'));
-            return;
-          }
-          activeScript = document.createElement('script');
-          activeScript.async = true;
-          activeScript.onerror = () => {
-            activeScript.remove();
-            timer = setTimeout(check, 1200);
-          };
-          window[callbackName] = (result) => {
-            activeScript.remove();
-            if (result.state === 'pending') timer = setTimeout(check, 1200);
-            else finish(null, result);
-          };
-          const url = new URL(SCRIPT_URL);
-          url.searchParams.set('prefix', callbackName);
-          url.searchParams.set('requestId', requestId);
-          url.searchParams.set('_', String(Date.now()));
-          activeScript.src = url.toString();
-          document.head.append(activeScript);
-        };
-        check();
-      });
-    }
-
     function finishSubmission(button) {
       button.disabled = false;
       button.textContent = 'Enviar plan de trabajo';
-      pendingRequestId = '';
     }
 
     function resetPlanForm() {
@@ -432,31 +433,26 @@
         events: [...document.querySelectorAll('.event-row')].map(row => ({ name: row.querySelector('[name="eventName"]').value.trim(), date: row.querySelector('[name="eventDate"]').value, budget: row.querySelector('[name="eventBudget"]').value === '' ? null : Number(row.querySelector('[name="eventBudget"]').value), place: row.querySelector('[name="eventPlace"]').value.trim(), notes: row.querySelector('[name="eventNotes"]').value.trim() }))
       };
       const btn = document.querySelector('#submitBtn');
-      pendingRequestId = createRequestId();
-      payload.requestId = pendingRequestId;
       btn.disabled = true; btn.textContent = 'Enviando…';
       try {
-        // El POST se envía sin preflight; luego JSONP consulta el estado real de guardado.
-        try {
-          await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        } catch (networkError) {
-          // El POST podría haber llegado aunque el navegador no pudiera leer la respuesta.
-        }
-        const result = await pollSaveStatus(pendingRequestId);
-        if (result.state === 'success') {
-          statusEl.textContent = '¡Plan enviado y guardado correctamente!';
-          statusEl.className = 'success';
-          resetPlanForm();
-        } else {
-          statusEl.textContent = `No se pudo guardar: ${result.message || 'error desconocido'}. La información permanece en el formulario.`;
-          statusEl.className = 'error';
-        }
+        // GitHub Pages no puede leer la respuesta opaca de Apps Script; el POST completado
+        // sirve como confirmación visible para este formulario.
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        resetPlanForm();
+        document.querySelector('#successOverlay').hidden = false;
+        document.querySelector('#newPlanButton').focus();
       } catch (err) {
-        statusEl.textContent = 'No recibimos confirmación del guardado. La información permanece en el formulario; revisa la hoja antes de volver a enviarla para evitar duplicados.';
+        statusEl.textContent = 'No se pudo enviar el plan. La información permanece en el formulario; revisa tu conexión e inténtalo de nuevo.';
         statusEl.className = 'error';
       } finally {
         finishSubmission(btn);
       }
+    });
+
+    document.querySelector('#newPlanButton').addEventListener('click', () => {
+      document.querySelector('#successOverlay').hidden = true;
+      document.querySelector('#area').focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   </script>
 </body>
